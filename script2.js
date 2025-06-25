@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-
+    //
     const thumbnailView = document.getElementById('thumbnail-view');
     const lightbox = document.getElementById('lightbox');
     const loadingSpinner = document.getElementById('loading-spinner');
