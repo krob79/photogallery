@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     const thumbnailView = document.getElementById('thumbnail-view');
     const lightbox = document.getElementById('lightbox');
     const loadingSpinner = document.getElementById('loading-spinner');
@@ -9,24 +10,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const clearSearchButton = document.getElementById('clear-search');
 
+    // NEW: Navigation buttons
     const prevButton = document.getElementById('prev-button');
     const nextButton = document.getElementById('next-button');
 
+    // NEW: Slideshow button
     const slideshowButton = document.getElementById('slideshow-button');
+    const lightboxSlideshowButton = document.getElementById('play-button');
 
     // **IMPORTANT: Replace this with your actual published CSV link**
-    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/sheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
+    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
 
-    let imageData = [];
-    let currentThumbnails = [];
-    let filteredImageData = [];
-    let currentImageIndexInFilteredList = -1;
+    let imageData = []; // Stores all fetched image data
+    let currentThumbnails = []; // Stores references to the actual thumbnail DOM elements
+    let filteredImageData = []; // Stores the currently visible images (based on search)
+    let currentImageIndexInFilteredList = -1; // Index of the currently viewed image within filteredImageData
+    let latestImageViewed = 0;
 
     // NEW: Slideshow variables
     let slideshowInterval = null; // Holds the interval ID
     const SLIDESHOW_DELAY = 3000; // 3 seconds per image
     const FADE_DURATION = 500; // 0.5 seconds for fade effect (matches CSS transition)
-
 
     // Function to fetch and parse CSV data
     async function fetchImageData() {
@@ -36,9 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const csvText = await response.text();
-            imageData = parseCsvToJSON(csvText);
-            filteredImageData = [...imageData];
-            renderThumbnails(imageData);
+            imageData = parseCsvToJSON(csvText); // Parse the CSV
+            // Initially, filteredImageData is all imageData
+            filteredImageData = [...imageData]; // Use spread to create a shallow copy
+            renderThumbnails(imageData); // Initial render of all thumbnails
+            checkPageParam();
+            
         } catch (error) {
             console.error("Could not fetch or parse image data from Google Sheet:", error);
             thumbnailView.innerHTML = '<p>Error loading images from Google Sheet. Please check the URL and sharing settings.</p>';
@@ -48,73 +55,132 @@ document.addEventListener('DOMContentLoaded', () => {
     function extractID(imageURL) {
         let photoID;
         if (imageURL.includes("id=")) {
+
             photoID = imageURL.split("id=")[1];
+
         } else if (imageURL.includes("/d/")) {
-            photoID = imageURL.split("/d/")[1].split('/')[0]; // Ensure only the ID is captured
+
+            photoID = imageURL.split("/d/")[1];
+
         }
+
         return photoID;
+
     }
 
-    function regExMatch(str) {
+    function checkPageParam(){
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const params = Object.fromEntries(urlSearchParams.entries());
+        console.log("URL Parameters:", params); // Log URL parameters for debugging
+        if(params['view']){
+            console.log("View specific image! ", params['view']);
+            showLightbox(params['view']);
+            // You can add more debug-specific code here if needed
+        }else{
+            console.log("No specific image!");
+        }
+    }
+    
+
+    function regExMatch(str){
+        // regex for grouping values
+        // This regex captures up to 4 groups of values separated by commas.
+        // It allows for optional values in the second and third groups, and captures everything else in the fourth group.
+        // This is useful for handling CSV files with varying numbers of columns.
         const regex = /^([^,]+)(?:,([^,]+))?(?:,([^,]+))?(?:,(.*))?$/g;
+
+        // Alternative syntax using RegExp constructor
+        // const regex = new RegExp('^([^,]+)(?:,([^,]+))?(?:,([^,]+))?(?:,(.*))?$', 'g')
+
+        //test string for regex matching
+        //const str = `2/23/2025 20:56:43,sarah.s.roberts@gmail.com,https://drive.google.com/open?id=1ATAxpQ7puldruGOvrRclCmKF7d9s9qWI,The Fragoberts Fam - Kyle, Sarah, Lex , & Henry at the Atl United Game on 2-22-25, at lejrnjer`;
+
+        // Reset `lastIndex` if this regex is defined globally
+        // regex.lastIndex = 0;
+
+        // console.log(`Checking string: ${str} - ${typeof str}`);
         let m;
+
         let groups = [];
+
         while ((m = regex.exec(str.trim())) !== null) {
+            // This is necessary to avoid infinite loops with zero-width matches
             if (m.index === regex.lastIndex) {
                 regex.lastIndex++;
             }
+
+            // The result can be accessed through the `m`-variable.
             m.forEach((match, groupIndex) => {
-                if (groupIndex > 0) { // Only capture actual groups, not the full match (group 0)
-                    groups.push(match);
-                }
+                // console.log(`Found match, group ${groupIndex}: ${match}`);
+                groups.push(match);
             });
         }
+
         return groups;
     }
 
     function parseCsvToJSON(csv) {
+
+        //separate lines by newline
         const lines = csv.trim().split('\n');
         if (lines.length === 0) return [];
 
-        const headers = lines[0].split(',').map(header => header.trim());
+        const headers = lines[0].split(',').map(header => header.trim()); // Get headers from the first line
+        console.log(`Headers found: ${headers}`); // Log headers for debugging
         const data = [];
 
         for (let i = 1; i < lines.length; i++) {
+            // console.log(`Processing row ${i+1}: ${lines[i]}`); // Log each row being processed
+
             let regExGroups = regExMatch(lines[i]);
-
-            // Ensure regExGroups has at least enough elements for Photo and Caption
-            // Assuming 'Photo' is the 3rd column (index 2) and 'Caption' is the 4th (index 3)
-            // based on your previous regex which captures up to 4 groups.
-            // If the structure changes, you'll need to adjust these indices or headers.
-            if (regExGroups.length < 4) { // Needs at least 4 groups if Photo is 3rd and Caption is 4th
-                 console.warn(`Skipping row ${i+1} due to insufficient columns after regex match.`);
-                 continue;
-            }
-
+            
             const item = {};
-            // Assuming header mapping: headers[0] -> Timestamp, headers[1] -> Email Address, headers[2] -> Photo, headers[3] -> Caption
-            // Adjust these indices based on your CSV's actual column order and desired data.
-            item[headers[2]] = regExGroups[2]; // Photo column
-            item[headers[3]] = regExGroups[3]; // Caption column (can contain commas)
-
-
-            // Manual cleanup for values if regex leaves extra commas or quotes
-            for (const key in item) {
-                if (typeof item[key] === 'string') {
-                    item[key] = item[key].trim();
-                    if (item[key].startsWith('"') && item[key].endsWith('"')) {
-                        item[key] = item[key].substring(1, item[key].length - 1); // Remove quotes
+            for (let j = 0; j < regExGroups.length; j++) {
+                // Trim whitespace and handle potential quotes in values
+                let value = regExGroups[j+1];
+                if (typeof value == "string") {
+                    if (value.endsWith(',')){
+                        value = value.substring(0, value.length - 1); // Remove comma at the end
                     }
-                    if (item[key].endsWith(',')) {
-                        item[key] = item[key].substring(0, item[key].length - 1); // Remove trailing comma
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        value = value.substring(1, value.length - 1); // Remove quotes
                     }
+                     
                 }
+                item[headers[j]] = value;
             }
+            console.log(`Parsed item: ${item}`); // Log the parsed item for debugging
             data.push(item);
         }
         return data;
     }
 
+    // Parses CSV text into an array of JSON objects (same as before)
+    // function parseCsvToJSON2(csv) {
+    //     const lines = csv.trim().split('\n');
+    //     if (lines.length === 0) return [];
+
+    //     const headers = lines[0].split(',').map(header => header.trim());
+    //     const data = [];
+
+    //     for (let i = 1; i < lines.length; i++) {
+    //         const currentLine = lines[i].split(',');
+    //         if (currentLine.length !== headers.length) {
+    //             console.warn(`Skipping row ${i+1} due to column mismatch.`);
+    //             continue;
+    //         }
+    //         const item = {};
+    //         for (let j = 0; j < headers.length; j++) {
+    //             let value = currentLine[j].trim();
+    //             if (value.startsWith('"') && value.endsWith('"')) {
+    //                 value = value.substring(1, value.length - 1);
+    //             }
+    //             item[headers[j]] = value;
+    //         }
+    //         data.push(item);
+    //     }
+    //     return data;
+    // }
 
     // Function to render thumbnails (modified to store references)
     function renderThumbnails(images) {
@@ -124,27 +190,33 @@ document.addEventListener('DOMContentLoaded', () => {
         images.forEach((image, index) => {
             const thumbDiv = document.createElement('div');
             thumbDiv.classList.add('thumbnail-item');
+            // Store the original index from the 'imageData' array
             thumbDiv.dataset.originalIndex = index;
-            // Use image.Caption here, assuming 'Caption' is the header from your CSV
             thumbDiv.dataset.caption = image.Caption ? image.Caption.toLowerCase() : '';
 
             const tooltip = document.createElement('span');
             tooltip.setAttribute('class', 'tooltiptext');
-            tooltip.textContent = `${index+2}. ${image.Caption || 'No caption'}`; // Use image.Caption
+            //index + 2 to account for the header row in the CSV
+            tooltip.textContent = `${index+2}. ${image.Caption}` || 'No caption';
+            
 
             const img = document.createElement('img');
-            let photoID = extractID(image.Photo); // Use image.Photo
+            console.log(``);
+            let photoID = extractID(image.Photo);
             img.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s300`;
-            img.alt = image.Caption; // Use image.Caption
-
+            img.alt = image.Caption;
+            
             thumbDiv.appendChild(img);
             thumbDiv.appendChild(tooltip);
             thumbnailView.appendChild(thumbDiv);
 
+            // When a thumbnail is clicked, find its index within the *currently filtered* list
             thumbDiv.addEventListener('click', () => {
-                stopSlideshow(); // Stop slideshow if user clicks a thumbnail
+                
                 const originalIndexClicked = parseInt(thumbDiv.dataset.originalIndex);
+                latestImageViewed = originalIndexClicked;
                 const indexInFiltered = filteredImageData.findIndex(img => imageData.indexOf(img) === originalIndexClicked);
+                console.log(`Thumbnail clicked - Original Index: ${originalIndexClicked}, Filtered Index: ${indexInFiltered}`);
                 if (indexInFiltered !== -1) {
                     showLightbox(indexInFiltered);
                 }
@@ -156,23 +228,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Filter thumbnails based on search input (modified to update filteredImageData)
     function filterThumbnails() {
         const searchTerm = searchInput.value.toLowerCase().trim();
-        filteredImageData = [];
+        filteredImageData = []; // Reset filtered data
 
         currentThumbnails.forEach(thumbDiv => {
             const caption = thumbDiv.dataset.caption;
-            const originalIndex = parseInt(thumbDiv.dataset.originalIndex);
+            const originalIndex = parseInt(thumbDiv.dataset.originalIndex); // Get original index
 
             if (caption.includes(searchTerm) || searchTerm === '') {
                 thumbDiv.classList.remove('hidden-by-search');
-                filteredImageData.push(imageData[originalIndex]);
+                filteredImageData.push(imageData[originalIndex]); // Add to filtered data
             } else {
                 thumbDiv.classList.add('hidden-by-search');
             }
         });
-        // If slideshow is active and filtering reduces the list, stop it.
-        // Or if the current image is filtered out, slideshow should ideally restart from 0 or stop.
-        // For simplicity, we'll stop it.
-        stopSlideshow();
+        // Important: If a lightbox is open, close it if its image is no longer in the filtered list
+        // Or, more simply, ensure it only works on visible thumbs.
+        // For this implementation, we assume lightbox is closed before filtering or user knows to close.
+        // A more robust solution might auto-close or jump to a new image if current image is filtered out.
     }
 
     // NEW EVENT LISTENERS for search bar
@@ -184,34 +256,34 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.focus();
     });
 
-    // Function to show the lightbox with loading spinner (modified for fade effect)
+    // Function to show the lightbox with loading spinner (modified to use filteredImageData)
     function showLightbox(indexInFilteredList) {
+        console.log(`Showing lightbox for index: ${indexInFilteredList}`);
         if (indexInFilteredList < 0 || indexInFilteredList >= filteredImageData.length) {
             console.error("Invalid index for lightbox:", indexInFilteredList);
             return;
         }
 
         currentImageIndexInFilteredList = indexInFilteredList;
-        const image = filteredImageData[currentImageIndexInFilteredList];
-
+        const image = filteredImageData[currentImageIndexInFilteredList]; // Get image from filtered list
         // Hide old image/caption and show spinner immediately for fade-out
         enlargedImage.classList.add('fading'); // Start fade-out
         imageCaption.classList.add('fading');
         loadingSpinner.classList.remove('hidden');
+        prevButton.style.display = 'none';
+
         enlargedImage.classList.add('hidden'); // Hide display to prevent showing old image after fade-out
         imageCaption.classList.add('hidden');
-
 
         // Update UI to show/hide navigation buttons if only one image in filtered list
         if (filteredImageData.length <= 1) {
             prevButton.style.display = 'none';
             nextButton.style.display = 'none';
         } else {
-            prevButton.style.display = 'block';
+            prevButton.style.display = 'block'; // Or 'inline-block' depending on desired layout
             nextButton.style.display = 'block';
         }
 
-        // Delay updating src to allow fade-out to complete
         setTimeout(() => {
             let photoID = extractID(image.Photo);
             let caption = `${currentImageIndexInFilteredList+1}. ${image.Caption || 'No caption'}`; // Corrected index for display
@@ -239,38 +311,46 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = 'hidden';
     }
 
-    // Function to hide the lightbox (modified to stop slideshow)
+    // Function to hide the lightbox (same as before)
     function hideLightbox() {
-        stopSlideshow(); // Stop slideshow when lightbox is closed
+        stopSlideshow();
         lightbox.classList.add('hidden');
         document.body.style.overflow = '';
 
         enlargedImage.onload = null;
         enlargedImage.onerror = null;
         currentImageIndexInFilteredList = -1;
-        // Ensure image/caption are not left in fading state if closed mid-transition
         enlargedImage.classList.remove('fading', 'hidden');
         imageCaption.classList.remove('fading', 'hidden');
         loadingSpinner.classList.add('hidden'); // Ensure spinner is hidden
     }
 
+    // NEW FUNCTION: Navigate to the next image in the filtered list
     function showNextImage() {
-        if (filteredImageData.length === 0) return;
+        if (filteredImageData.length === 0) return; // No images to navigate
+
         currentImageIndexInFilteredList++;
         if (currentImageIndexInFilteredList >= filteredImageData.length) {
-            currentImageIndexInFilteredList = 0;
+            currentImageIndexInFilteredList = 0; // Loop to the first image
         }
         showLightbox(currentImageIndexInFilteredList);
     }
 
+    // NEW FUNCTION: Navigate to the previous image in the filtered list
     function showPrevImage() {
-        if (filteredImageData.length === 0) return;
+        if (filteredImageData.length === 0) return; // No images to navigate
+
         currentImageIndexInFilteredList--;
         if (currentImageIndexInFilteredList < 0) {
-            currentImageIndexInFilteredList = filteredImageData.length - 1;
+            currentImageIndexInFilteredList = filteredImageData.length - 1; // Loop to the last image
         }
         showLightbox(currentImageIndexInFilteredList);
     }
+
+    // NEW EVENT LISTENERS for navigation buttons
+    nextButton.addEventListener('click', showNextImage);
+    prevButton.addEventListener('click', showPrevImage);
+
 
     // NEW FUNCTION: Start the slideshow
     function startSlideshow() {
@@ -284,12 +364,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // If lightbox is not already open, open it to the first image
         if (lightbox.classList.contains('hidden')) {
-            currentImageIndexInFilteredList = 0; // Start from the first image
+            currentImageIndexInFilteredList = latestImageViewed; // Start from the last viewed image
             showLightbox(currentImageIndexInFilteredList);
         }
 
         slideshowButton.textContent = "Stop Slideshow"; // Update button text
+        lightboxSlideshowButton.innerHTML = '&#124'; // Update lightbox button text
+        //&#124;
         slideshowButton.classList.add('active-slideshow'); // Optional: Add a class for active state styling
+        lightboxSlideshowButton.classList.add('active-slideshow');
 
         slideshowInterval = setInterval(() => {
             showNextImage();
@@ -302,7 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(slideshowInterval);
             slideshowInterval = null;
             slideshowButton.textContent = "Start Slideshow"; // Reset button text
+            lightboxSlideshowButton.innerHTML = '&raquo;';
             slideshowButton.classList.remove('active-slideshow'); // Remove active state class
+            lightboxSlideshowButton.classList.remove('active-slideshow');
         }
     }
 
@@ -315,16 +400,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // EVENT LISTENERS for closing the lightbox (modified to stop slideshow)
+    //lightboxSlideshowButton
+    lightboxSlideshowButton.addEventListener('click', () => {
+        if (slideshowInterval) {
+            stopSlideshow();
+        } else {
+            startSlideshow();
+        }
+    });
+
+
+    // Event listeners for closing the lightbox (same as before)
     closeButton.addEventListener('click', hideLightbox);
-    // Modified: Clicking anywhere on the lightbox background (including the image/caption)
-    // will now stop the slideshow and close the lightbox.
+    enlargedImage.addEventListener('click', hideLightbox);
     lightbox.addEventListener('click', (event) => {
         if (event.target === lightbox || event.target === enlargedImage || event.target === imageCaption) {
             hideLightbox();
         }
     });
-
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !lightbox.classList.contains('hidden')) {
             hideLightbox();
