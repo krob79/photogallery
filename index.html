@@ -14,10 +14,10 @@
         <div id="search-container">
             <input type="text" id="search-input" placeholder="Search captions...">
             <button id="clear-search">X</button>
-            <button id="slideshow-button">Start Slideshow</button> </div>
+            <button id="slideshow-button" class="slideshow">Start Slideshow</button> 
+        </div>
 
-        <div id="thumbnail-view" class="active">
-            </div>
+        <div id="thumbnail-view" class="active"></div>
 
         <div id="lightbox" class="hidden">
             <div id="lightbox-content">
@@ -25,9 +25,17 @@
                 <div id="loading-spinner" class="hidden"></div>
                 <img id="enlarged-image" src="" alt="Enlarged Image">
                 <p id="image-caption"></p>
-                <button id="prev-button" class="nav-button">&lt; Prev</button>
-                <button id="next-button" class="nav-button">Next &gt;</button>
+                <div class="nav-buttons">  
+                    <button id="prev-button" class="nav-button">&lt;</button>
+                    <button id="play-button" class="play-button">&raquo;</button>
+                    <button id="next-button" class="nav-button">&gt;</button>
+                </div>
+                
             </div>
+                
+                
+                
+                
         </div>
     </div>
 

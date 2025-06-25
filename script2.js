@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     const thumbnailView = document.getElementById('thumbnail-view');
     const lightbox = document.getElementById('lightbox');
     const loadingSpinner = document.getElementById('loading-spinner');
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW: Slideshow button
     const slideshowButton = document.getElementById('slideshow-button');
+    const lightboxSlideshowButton = document.getElementById('play-button');
 
     // **IMPORTANT: Replace this with your actual published CSV link**
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
@@ -23,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentThumbnails = []; // Stores references to the actual thumbnail DOM elements
     let filteredImageData = []; // Stores the currently visible images (based on search)
     let currentImageIndexInFilteredList = -1; // Index of the currently viewed image within filteredImageData
+    let latestImageViewed = 0;
 
     // NEW: Slideshow variables
     let slideshowInterval = null; // Holds the interval ID
@@ -41,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Initially, filteredImageData is all imageData
             filteredImageData = [...imageData]; // Use spread to create a shallow copy
             renderThumbnails(imageData); // Initial render of all thumbnails
+            checkPageParam();
+            
         } catch (error) {
             console.error("Could not fetch or parse image data from Google Sheet:", error);
             thumbnailView.innerHTML = '<p>Error loading images from Google Sheet. Please check the URL and sharing settings.</p>';
@@ -62,6 +67,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return photoID;
 
     }
+
+    function checkPageParam(){
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const params = Object.fromEntries(urlSearchParams.entries());
+        console.log("URL Parameters:", params); // Log URL parameters for debugging
+        if(params['view']){
+            console.log("View specific image! ", params['view']);
+            showLightbox(params['view']);
+            // You can add more debug-specific code here if needed
+        }else{
+            console.log("No specific image!");
+        }
+    }
+    
 
     function regExMatch(str){
         // regex for grouping values
@@ -193,8 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // When a thumbnail is clicked, find its index within the *currently filtered* list
             thumbDiv.addEventListener('click', () => {
+                
                 const originalIndexClicked = parseInt(thumbDiv.dataset.originalIndex);
+                latestImageViewed = originalIndexClicked;
                 const indexInFiltered = filteredImageData.findIndex(img => imageData.indexOf(img) === originalIndexClicked);
+                console.log(`Thumbnail clicked - Original Index: ${originalIndexClicked}, Filtered Index: ${indexInFiltered}`);
                 if (indexInFiltered !== -1) {
                     showLightbox(indexInFiltered);
                 }
@@ -248,6 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
         enlargedImage.classList.add('fading'); // Start fade-out
         imageCaption.classList.add('fading');
         loadingSpinner.classList.remove('hidden');
+        prevButton.style.display = 'none';
+
         enlargedImage.classList.add('hidden'); // Hide display to prevent showing old image after fade-out
         imageCaption.classList.add('hidden');
 
@@ -260,34 +284,28 @@ document.addEventListener('DOMContentLoaded', () => {
             nextButton.style.display = 'block';
         }
 
-        enlargedImage.src = '';
-        enlargedImage.alt = '';
-        imageCaption.textContent = '';
+        setTimeout(() => {
+            let photoID = extractID(image.Photo);
+            let caption = `${currentImageIndexInFilteredList+1}. ${image.Caption || 'No caption'}`; // Corrected index for display
 
-        enlargedImage.classList.add('hidden');
-        imageCaption.classList.add('hidden');
-        loadingSpinner.classList.remove('hidden');
+            enlargedImage.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s1200`;
+            enlargedImage.alt = caption;
+            imageCaption.textContent = caption;
 
-        let photoID = extractID(image.Photo);
-        let caption = `${indexInFilteredList+2}. ${image.Caption || 'No caption'}`;
-        enlargedImage.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s1200`;
-        // enlargedImage.src = image.imageUrl;
-        enlargedImage.alt = caption;
-        imageCaption.textContent = caption;
-
-        enlargedImage.onload = () => {
+            enlargedImage.onload = () => {
                 loadingSpinner.classList.add('hidden');
                 enlargedImage.classList.remove('hidden', 'fading'); // Remove hidden and fading
                 imageCaption.classList.remove('hidden', 'fading'); // Show and un-fade
-        };
+            };
 
-        enlargedImage.onerror = () => {
+            enlargedImage.onerror = () => {
                 loadingSpinner.classList.add('hidden');
                 enlargedImage.classList.remove('hidden', 'fading');
                 imageCaption.classList.remove('hidden', 'fading');
                 imageCaption.textContent = `Error loading image: ${image.Caption || 'No caption'}`;
                 console.error("Failed to load image:", image.Photo);
-        };
+            };
+        }, FADE_DURATION); // Wait for fade-out to complete before changing image source
 
         lightbox.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -346,12 +364,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // If lightbox is not already open, open it to the first image
         if (lightbox.classList.contains('hidden')) {
-            currentImageIndexInFilteredList = 0; // Start from the first image
+            currentImageIndexInFilteredList = latestImageViewed; // Start from the last viewed image
             showLightbox(currentImageIndexInFilteredList);
         }
 
         slideshowButton.textContent = "Stop Slideshow"; // Update button text
+        lightboxSlideshowButton.innerHTML = '&#124'; // Update lightbox button text
+        //&#124;
         slideshowButton.classList.add('active-slideshow'); // Optional: Add a class for active state styling
+        lightboxSlideshowButton.classList.add('active-slideshow');
 
         slideshowInterval = setInterval(() => {
             showNextImage();
@@ -364,7 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(slideshowInterval);
             slideshowInterval = null;
             slideshowButton.textContent = "Start Slideshow"; // Reset button text
+            lightboxSlideshowButton.innerHTML = '&raquo;';
             slideshowButton.classList.remove('active-slideshow'); // Remove active state class
+            lightboxSlideshowButton.classList.remove('active-slideshow');
         }
     }
 
@@ -377,21 +400,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    //lightboxSlideshowButton
+    lightboxSlideshowButton.addEventListener('click', () => {
+        if (slideshowInterval) {
+            stopSlideshow();
+        } else {
+            startSlideshow();
+        }
+    });
+
 
     // Event listeners for closing the lightbox (same as before)
     closeButton.addEventListener('click', hideLightbox);
     enlargedImage.addEventListener('click', hideLightbox);
     lightbox.addEventListener('click', (event) => {
-        if (event.target === lightbox) {
+        if (event.target === lightbox || event.target === enlargedImage || event.target === imageCaption) {
             hideLightbox();
         }
     });
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !lightbox.classList.contains('hidden')) {
             hideLightbox();
-        } else if (event.key === 'ArrowRight' && !lightbox.classList.contains('hidden')) { // NEW: Keyboard navigation
+        } else if (event.key === 'ArrowRight' && !lightbox.classList.contains('hidden')) {
+            stopSlideshow(); // Stop slideshow if manually navigating
             showNextImage();
-        } else if (event.key === 'ArrowLeft' && !lightbox.classList.contains('hidden')) { // NEW: Keyboard navigation
+        } else if (event.key === 'ArrowLeft' && !lightbox.classList.contains('hidden')) {
+            stopSlideshow(); // Stop slideshow if manually navigating
             showPrevImage();
         }
     });

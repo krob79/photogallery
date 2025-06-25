@@ -76,6 +76,8 @@ h1 {
     transition: background-color 0.2s ease;
 }
 
+
+
 #slideshow-button:hover {
     background-color: #218838;
 }
@@ -289,14 +291,50 @@ h1 {
     min-width: 100px;
 }
 
-.nav-button:hover {
-    /* background-color: rgba(0, 0, 0, 0.7); Removed as per user's preference */
+.play-button{
+    border: none;
+    background-color: #28a745; /* Green color */
+    border: 1px solid rgba(0, 0, 0, 0.3); /* Kept user's border */
+    padding: 10px 20px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+    margin: 10px 5px 0;
+    min-width: 50px;
+}
+
+.play-button:hover {
+    background-color: #218838; /* Darker green on hover */
     transform: scale(1.02);
-    border: 1px solid rgba(0, 0, 0, 0.9); /* Kept user's hover border */
+    /* border: 1px solid rgba(0, 0, 0, 0.9); */
+}
+
+
+.nav-button:hover {
+    /* background-color: rgba(0, 0, 0, 0.7); */
+    transform: scale(1.02);
+    /* border: 1px solid rgba(0, 0, 0, 0.9);  */
 }
 
 .nav-button:active {
     transform: scale(0.98);
+}
+
+.nav-button.hidden {
+    display: none; /* Hide navigation buttons when not needed */
+}
+
+.nav-buttons{
+    display: flex;
+    justify-content: space-between; /* Space between slideshow and clear search */
+    align-items: center; /* Center items vertically */
+    margin-top: 10px; /* Add some space above controls */
+}
+
+.active-slideshow{
+    background-color: #dc3545;
 }
 
 /* Animations */
