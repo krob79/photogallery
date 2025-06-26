@@ -22,6 +22,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // **IMPORTANT: Replace this with your actual published CSV link**
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
 
+    const elem = document.documentElement;
+
+    /* View in fullscreen */
+    function openFullscreen() {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { /* Safari */
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE11 */
+            elem.msRequestFullscreen();
+        }
+    }
+
+    /* Close fullscreen */
+    function closeFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+        }
+    }
+
+    
+
     let imageData = []; // Stores all fetched image data
     let currentThumbnails = []; // Stores references to the actual thumbnail DOM elements
     let filteredImageData = []; // Stores the currently visible images (based on search)
@@ -368,6 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW FUNCTION: Start the slideshow
     function startSlideshow() {
+        openFullscreen();
         if (filteredImageData.length === 0) {
             alert("No images to display for slideshow!");
             return;
@@ -395,6 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW FUNCTION: Stop the slideshow
     function stopSlideshow() {
+        closeFullscreen();
         if (slideshowInterval) {
             clearInterval(slideshowInterval);
             slideshowInterval = null;
@@ -409,6 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
     slideshowButton.addEventListener('click', () => {
         if (slideshowInterval) {
             stopSlideshow();
+            
         } else {
             startSlideshow();
         }
