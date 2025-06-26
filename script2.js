@@ -267,6 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentImageIndexInFilteredList = indexInFilteredList;
         const image = filteredImageData[currentImageIndexInFilteredList]; // Get image from filtered list
         // Hide old image/caption and show spinner immediately for fade-out
+        console.log("Adding fading class!");
         enlargedImage.classList.add('fading'); // Start fade-out
         imageCaption.classList.add('fading');
         loadingSpinner.classList.remove('hidden');

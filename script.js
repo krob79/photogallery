@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingSpinner = document.getElementById('loading-spinner');
     const enlargedImage = document.getElementById('enlarged-image');
     const imageCaption = document.getElementById('image-caption');
-    const closeButton = document.querySelector('.close-button');
 
     const searchInput = document.getElementById('search-input');
     const clearSearchButton = document.getElementById('clear-search');
@@ -18,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const slideshowButton = document.getElementById('slideshow-button');
     const lightboxSlideshowButton = document.getElementById('play-button');
 
+    const navButtons = document.getElementById('nav-buttons');
+
     // **IMPORTANT: Replace this with your actual published CSV link**
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
 
@@ -29,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW: Slideshow variables
     let slideshowInterval = null; // Holds the interval ID
-    const SLIDESHOW_DELAY = 3000; // 3 seconds per image
+    const SLIDESHOW_DELAY = 6000; // 3 seconds per image
     const FADE_DURATION = 500; // 0.5 seconds for fade effect (matches CSS transition)
 
     // Function to fetch and parse CSV data
@@ -267,10 +268,11 @@ document.addEventListener('DOMContentLoaded', () => {
         currentImageIndexInFilteredList = indexInFilteredList;
         const image = filteredImageData[currentImageIndexInFilteredList]; // Get image from filtered list
         // Hide old image/caption and show spinner immediately for fade-out
-        enlargedImage.classList.add('fading'); // Start fade-out
-        imageCaption.classList.add('fading');
+        console.log("Adding fading class!");
+        // enlargedImage.classList.add('fading'); // Start fade-out
+        // imageCaption.classList.add('fading');
         loadingSpinner.classList.remove('hidden');
-        prevButton.style.display = 'none';
+        navButtons.classList.add('hidden');
 
         enlargedImage.classList.add('hidden'); // Hide display to prevent showing old image after fade-out
         imageCaption.classList.add('hidden');
@@ -285,6 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => {
+            enlargedImage.style.opacity = 0; 
             let photoID = extractID(image.Photo);
             let caption = `${currentImageIndexInFilteredList+1}. ${image.Caption || 'No caption'}`; // Corrected index for display
 
@@ -292,10 +295,21 @@ document.addEventListener('DOMContentLoaded', () => {
             enlargedImage.alt = caption;
             imageCaption.textContent = caption;
 
+            loadingSpinner.classList.add('hidden');
+
             enlargedImage.onload = () => {
-                loadingSpinner.classList.add('hidden');
-                enlargedImage.classList.remove('hidden', 'fading'); // Remove hidden and fading
-                imageCaption.classList.remove('hidden', 'fading'); // Show and un-fade
+                
+                enlargedImage.classList.remove('hidden'); // Remove hidden and fading
+                imageCaption.classList.remove('hidden'); // Show and un-fade
+                navButtons.classList.remove('hidden');
+                setTimeout(() => {
+                    enlargedImage.style.opacity = 1; // Ensure fully visible
+                }, 100); // Match this duration with your CSS transition duration
+                
+                // enlargedImage.classList.add('fadeIn'); // Remove hidden and fading
+                // imageCaption.classList.add('fadeIn'); // Show and un-fade
+                // enlargedImage.classList.remove('hidden', 'fading'); // Remove hidden and fading
+                // imageCaption.classList.remove('hidden', 'fading'); // Show and un-fade
             };
 
             enlargedImage.onerror = () => {
@@ -411,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Event listeners for closing the lightbox (same as before)
-    closeButton.addEventListener('click', hideLightbox);
+    
     enlargedImage.addEventListener('click', hideLightbox);
     lightbox.addEventListener('click', (event) => {
         if (event.target === lightbox || event.target === enlargedImage || event.target === imageCaption) {

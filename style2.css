@@ -196,15 +196,11 @@ h1 {
     border-radius: 5px;
     object-fit: contain;
     cursor: pointer;
-    transition: opacity 1.5s ease-in-out; /* Added: Fade transition for slideshow */
-    opacity: 0; /* Added: Default state */
+    transition: opacity 0.5s ease-in-out; /* Added: Fade transition for slideshow */
+    opacity: 1; /* Added: Default state */
 }
 
 #enlarged-image.hidden { /* To hide image while loading */
-    display: none;
-}
-
-#next-button.hidden, #prev-button.hidden {
     display: none;
 }
 
@@ -334,15 +330,11 @@ h1 {
     display: none; /* Hide navigation buttons when not needed */
 }
 
-#nav-buttons{
+.nav-buttons{
     display: flex;
     justify-content: space-between; /* Space between slideshow and clear search */
     align-items: center; /* Center items vertically */
     margin-top: 10px; /* Add some space above controls */
-}
-
-#nav-buttons.hidden{
-    display: none;
 }
 
 .active-slideshow{
