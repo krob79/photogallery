@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingSpinner = document.getElementById('loading-spinner');
     const enlargedImage = document.getElementById('enlarged-image');
     const imageCaption = document.getElementById('image-caption');
-    const closeButton = document.querySelector('.close-button');
 
     const searchInput = document.getElementById('search-input');
     const clearSearchButton = document.getElementById('clear-search');
@@ -18,8 +17,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const slideshowButton = document.getElementById('slideshow-button');
     const lightboxSlideshowButton = document.getElementById('play-button');
 
+    const navButtons = document.getElementById('nav-buttons');
+
     // **IMPORTANT: Replace this with your actual published CSV link**
     const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
+
+    const elem = document.documentElement;
+
+    let viewMode = 'manual'; // 'manual' or 'slideshow'
+
+    /* View in fullscreen */
+    function openFullscreen() {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { /* Safari */
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE11 */
+            elem.msRequestFullscreen();
+        }
+    }
+
+    /* Close fullscreen */
+    function closeFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+        }
+    }
+
+    
 
     let imageData = []; // Stores all fetched image data
     let currentThumbnails = []; // Stores references to the actual thumbnail DOM elements
@@ -29,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW: Slideshow variables
     let slideshowInterval = null; // Holds the interval ID
-    const SLIDESHOW_DELAY = 3000; // 3 seconds per image
+    const SLIDESHOW_DELAY = 6000; // 3 seconds per image
     const FADE_DURATION = 500; // 0.5 seconds for fade effect (matches CSS transition)
 
     // Function to fetch and parse CSV data
@@ -268,10 +297,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const image = filteredImageData[currentImageIndexInFilteredList]; // Get image from filtered list
         // Hide old image/caption and show spinner immediately for fade-out
         console.log("Adding fading class!");
-        enlargedImage.classList.add('fading'); // Start fade-out
-        imageCaption.classList.add('fading');
+        // enlargedImage.classList.add('fading'); // Start fade-out
+        // imageCaption.classList.add('fading');
         loadingSpinner.classList.remove('hidden');
-        prevButton.style.display = 'none';
+        navButtons.classList.add('hidden');
 
         enlargedImage.classList.add('hidden'); // Hide display to prevent showing old image after fade-out
         imageCaption.classList.add('hidden');
@@ -286,6 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => {
+            enlargedImage.style.opacity = 0; 
             let photoID = extractID(image.Photo);
             let caption = `${currentImageIndexInFilteredList+1}. ${image.Caption || 'No caption'}`; // Corrected index for display
 
@@ -293,10 +323,24 @@ document.addEventListener('DOMContentLoaded', () => {
             enlargedImage.alt = caption;
             imageCaption.textContent = caption;
 
+            loadingSpinner.classList.add('hidden');
+
             enlargedImage.onload = () => {
-                loadingSpinner.classList.add('hidden');
-                enlargedImage.classList.remove('hidden', 'fading'); // Remove hidden and fading
-                imageCaption.classList.remove('hidden', 'fading'); // Show and un-fade
+                
+                enlargedImage.classList.remove('hidden'); // Remove hidden and fading
+                imageCaption.classList.remove('hidden'); // Show and un-fade
+                if(viewMode === 'manual'){
+                    navButtons.classList.remove('hidden');
+                }
+                
+                setTimeout(() => {
+                    enlargedImage.style.opacity = 1; // Ensure fully visible
+                }, 100); // Match this duration with your CSS transition duration
+                
+                // enlargedImage.classList.add('fadeIn'); // Remove hidden and fading
+                // imageCaption.classList.add('fadeIn'); // Show and un-fade
+                // enlargedImage.classList.remove('hidden', 'fading'); // Remove hidden and fading
+                // imageCaption.classList.remove('hidden', 'fading'); // Show and un-fade
             };
 
             enlargedImage.onerror = () => {
@@ -355,6 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW FUNCTION: Start the slideshow
     function startSlideshow() {
+        viewMode = 'slideshow';
+        openFullscreen();
         if (filteredImageData.length === 0) {
             alert("No images to display for slideshow!");
             return;
@@ -370,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         slideshowButton.textContent = "Stop Slideshow"; // Update button text
-        lightboxSlideshowButton.innerHTML = '&#124'; // Update lightbox button text
+        lightboxSlideshowButton.innerHTML = '&#124;&#124;'; // Update lightbox button text
         //&#124;
         slideshowButton.classList.add('active-slideshow'); // Optional: Add a class for active state styling
         lightboxSlideshowButton.classList.add('active-slideshow');
@@ -382,6 +428,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW FUNCTION: Stop the slideshow
     function stopSlideshow() {
+        viewMode = 'manual';
+        closeFullscreen();
         if (slideshowInterval) {
             clearInterval(slideshowInterval);
             slideshowInterval = null;
@@ -396,6 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
     slideshowButton.addEventListener('click', () => {
         if (slideshowInterval) {
             stopSlideshow();
+            
         } else {
             startSlideshow();
         }
@@ -412,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Event listeners for closing the lightbox (same as before)
-    closeButton.addEventListener('click', hideLightbox);
+    
     enlargedImage.addEventListener('click', hideLightbox);
     lightbox.addEventListener('click', (event) => {
         if (event.target === lightbox || event.target === enlargedImage || event.target === imageCaption) {

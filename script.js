@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const elem = document.documentElement;
 
+    let viewMode = 'manual'; // 'manual' or 'slideshow'
+
     /* View in fullscreen */
     function openFullscreen() {
         if (elem.requestFullscreen) {
@@ -327,7 +329,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 enlargedImage.classList.remove('hidden'); // Remove hidden and fading
                 imageCaption.classList.remove('hidden'); // Show and un-fade
-                navButtons.classList.remove('hidden');
+                if(viewMode === 'manual'){
+                    navButtons.classList.remove('hidden');
+                }
+                
                 setTimeout(() => {
                     enlargedImage.style.opacity = 1; // Ensure fully visible
                 }, 100); // Match this duration with your CSS transition duration
@@ -394,6 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW FUNCTION: Start the slideshow
     function startSlideshow() {
+        viewMode = 'slideshow';
         openFullscreen();
         if (filteredImageData.length === 0) {
             alert("No images to display for slideshow!");
@@ -410,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         slideshowButton.textContent = "Stop Slideshow"; // Update button text
-        lightboxSlideshowButton.innerHTML = '&#124'; // Update lightbox button text
+        lightboxSlideshowButton.innerHTML = '&#124;&#124;'; // Update lightbox button text
         //&#124;
         slideshowButton.classList.add('active-slideshow'); // Optional: Add a class for active state styling
         lightboxSlideshowButton.classList.add('active-slideshow');
@@ -422,6 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NEW FUNCTION: Stop the slideshow
     function stopSlideshow() {
+        viewMode = 'manual';
         closeFullscreen();
         if (slideshowInterval) {
             clearInterval(slideshowInterval);
