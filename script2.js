@@ -39,13 +39,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* Close fullscreen */
     function closeFullscreen() {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { /* Safari */
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { /* IE11 */
-            document.msExitFullscreen();
+        try{
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) { /* Safari */
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { /* IE11 */
+                document.msExitFullscreen();
+            }
+        }catch(err){
+            console.warn("Could not exit fullscreen mode.");
         }
+        
     }
 
     
@@ -100,13 +105,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkPageParam(){
         const urlSearchParams = new URLSearchParams(window.location.search);
         const params = Object.fromEntries(urlSearchParams.entries());
-        console.log("URL Parameters:", params); // Log URL parameters for debugging
+        //console.log("URL Parameters:", params); // Log URL parameters for debugging
         if(params['view']){
             console.log("View specific image! ", params['view']);
             showLightbox(params['view']);
             // You can add more debug-specific code here if needed
-        }else{
-            console.log("No specific image!");
         }
     }
     
@@ -155,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (lines.length === 0) return [];
 
         const headers = lines[0].split(',').map(header => header.trim()); // Get headers from the first line
-        console.log(`Headers found: ${headers}`); // Log headers for debugging
+        // console.log(`Headers found: ${headers}`); // Log headers for debugging
         const data = [];
 
         for (let i = 1; i < lines.length; i++) {
@@ -177,8 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
                      
                 }
                 item[headers[j]] = value;
+                item["id"] = i+1; // Add an ID field based on the row number
             }
-            console.log(`Parsed item: ${item}`); // Log the parsed item for debugging
+            // console.log(`Parsed item: ${item}`); // Log the parsed item for debugging
             data.push(item);
         }
         return data;
@@ -226,11 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const tooltip = document.createElement('span');
             tooltip.setAttribute('class', 'tooltiptext');
             //index + 2 to account for the header row in the CSV
-            tooltip.textContent = `${index+2}. ${image.Caption}` || 'No caption';
+            tooltip.textContent = `${image.id}. ${image.Caption}` || 'No caption';
             
 
             const img = document.createElement('img');
-            console.log(``);
             let photoID = extractID(image.Photo);
             img.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s300`;
             img.alt = image.Caption;
@@ -241,13 +244,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // When a thumbnail is clicked, find its index within the *currently filtered* list
             thumbDiv.addEventListener('click', () => {
-                
+                //grab the original index from the dataset
                 const originalIndexClicked = parseInt(thumbDiv.dataset.originalIndex);
+                //update latestImageViewed to be this index - is used for slideshow start point to resume from last img viewed
                 latestImageViewed = originalIndexClicked;
+                // Find the index of this image in the filtered list
                 const indexInFiltered = filteredImageData.findIndex(img => imageData.indexOf(img) === originalIndexClicked);
                 console.log(`Thumbnail clicked - Original Index: ${originalIndexClicked}, Filtered Index: ${indexInFiltered}`);
                 if (indexInFiltered !== -1) {
-                    showLightbox(indexInFiltered);
+                    showLightbox(originalIndexClicked);
                 }
             });
             currentThumbnails.push(thumbDiv);
@@ -270,10 +275,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 thumbDiv.classList.add('hidden-by-search');
             }
         });
-        // Important: If a lightbox is open, close it if its image is no longer in the filtered list
-        // Or, more simply, ensure it only works on visible thumbs.
-        // For this implementation, we assume lightbox is closed before filtering or user knows to close.
-        // A more robust solution might auto-close or jump to a new image if current image is filtered out.
     }
 
     // NEW EVENT LISTENERS for search bar
@@ -286,22 +287,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Function to show the lightbox with loading spinner (modified to use filteredImageData)
-    function showLightbox(indexInFilteredList) {
-        console.log(`Showing lightbox for index: ${indexInFilteredList}`);
-        if (indexInFilteredList < 0 || indexInFilteredList >= filteredImageData.length) {
-            console.error("Invalid index for lightbox:", indexInFilteredList);
-            return;
-        }
+    function showLightbox(index) {
+        console.log(`Showing lightbox for index: ${index}`);
+        // if (index < 0 || index >= filteredImageData.length) {
+        //     console.error("Invalid index for lightbox:", index);
+        //     return;
+        // }
 
-        currentImageIndexInFilteredList = indexInFilteredList;
-        const image = filteredImageData[currentImageIndexInFilteredList]; // Get image from filtered list
-        // Hide old image/caption and show spinner immediately for fade-out
-        console.log("Adding fading class!");
-        // enlargedImage.classList.add('fading'); // Start fade-out
-        // imageCaption.classList.add('fading');
+        console.log(filteredImageData);
+
+        currentImageIndexInFilteredList = index;
+        const image = imageData[index]; 
+
+        //show spinner and hide nav buttons
         loadingSpinner.classList.remove('hidden');
         navButtons.classList.add('hidden');
-
+        //hide whatever image/caption is currently showing
         enlargedImage.classList.add('hidden'); // Hide display to prevent showing old image after fade-out
         imageCaption.classList.add('hidden');
 
@@ -315,9 +316,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => {
+            //set image opacity to 0 to prepare for fade-in
             enlargedImage.style.opacity = 0; 
+            imageCaption.style.opacity = 0;
             let photoID = extractID(image.Photo);
-            let caption = `${currentImageIndexInFilteredList+1}. ${image.Caption || 'No caption'}`; // Corrected index for display
+            let caption = `${image.id}. ${image.Caption || 'No caption'}`; // Adjusted index for reference to CSV row number
 
             enlargedImage.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s1200`;
             enlargedImage.alt = caption;
@@ -335,12 +338,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 setTimeout(() => {
                     enlargedImage.style.opacity = 1; // Ensure fully visible
+                    imageCaption.style.opacity = 1;
                 }, 100); // Match this duration with your CSS transition duration
                 
-                // enlargedImage.classList.add('fadeIn'); // Remove hidden and fading
-                // imageCaption.classList.add('fadeIn'); // Show and un-fade
-                // enlargedImage.classList.remove('hidden', 'fading'); // Remove hidden and fading
-                // imageCaption.classList.remove('hidden', 'fading'); // Show and un-fade
             };
 
             enlargedImage.onerror = () => {
@@ -358,7 +358,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to hide the lightbox (same as before)
     function hideLightbox() {
-        stopSlideshow();
+        if(viewMode === 'slideshow'){
+            stopSlideshow();
+        }
         lightbox.classList.add('hidden');
         document.body.style.overflow = '';
 
@@ -378,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentImageIndexInFilteredList >= filteredImageData.length) {
             currentImageIndexInFilteredList = 0; // Loop to the first image
         }
+        console.log(`Next image index: ${currentImageIndexInFilteredList}`);
         showLightbox(currentImageIndexInFilteredList);
     }
 
@@ -389,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentImageIndexInFilteredList < 0) {
             currentImageIndexInFilteredList = filteredImageData.length - 1; // Loop to the last image
         }
+        console.log(`Previous image index: ${currentImageIndexInFilteredList}`);
         showLightbox(currentImageIndexInFilteredList);
     }
 

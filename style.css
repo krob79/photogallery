@@ -227,7 +227,7 @@ h1 {
     width: fit-content;
     max-width: 90%;
     margin-top: -10px;
-    transition: opacity 0.5s ease-in-out; /* Added: Fade transition for slideshow */
+    transition: opacity 1.5s ease-in-out; /* Added: Fade transition for slideshow */
     opacity: 1; /* Added: Default state */
 }
 
