@@ -188,33 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return data;
     }
 
-    // Parses CSV text into an array of JSON objects (same as before)
-    // function parseCsvToJSON2(csv) {
-    //     const lines = csv.trim().split('\n');
-    //     if (lines.length === 0) return [];
-
-    //     const headers = lines[0].split(',').map(header => header.trim());
-    //     const data = [];
-
-    //     for (let i = 1; i < lines.length; i++) {
-    //         const currentLine = lines[i].split(',');
-    //         if (currentLine.length !== headers.length) {
-    //             console.warn(`Skipping row ${i+1} due to column mismatch.`);
-    //             continue;
-    //         }
-    //         const item = {};
-    //         for (let j = 0; j < headers.length; j++) {
-    //             let value = currentLine[j].trim();
-    //             if (value.startsWith('"') && value.endsWith('"')) {
-    //                 value = value.substring(1, value.length - 1);
-    //             }
-    //             item[headers[j]] = value;
-    //         }
-    //         data.push(item);
-    //     }
-    //     return data;
-    // }
-
     // Function to render thumbnails (modified to store references)
     function renderThumbnails(images) {
         thumbnailView.innerHTML = '';
@@ -250,9 +223,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 latestImageViewed = originalIndexClicked;
                 // Find the index of this image in the filtered list
                 const indexInFiltered = filteredImageData.findIndex(img => imageData.indexOf(img) === originalIndexClicked);
-                console.log(`Thumbnail clicked - Original Index: ${originalIndexClicked}, Filtered Index: ${indexInFiltered}`);
+                console.log(`Thumbnail clicked - Original 0-based Index: ${originalIndexClicked}, Filtered 0-based Index: ${indexInFiltered}`);
                 if (indexInFiltered !== -1) {
-                    showLightbox(originalIndexClicked);
+                    showLightbox(indexInFiltered);
                 }
             });
             currentThumbnails.push(thumbDiv);
@@ -287,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Function to show the lightbox with loading spinner (modified to use filteredImageData)
+    //Param index is the index in the filteredImageData array, which could be everything, or just a subset if filtered
     function showLightbox(index) {
         console.log(`Showing lightbox for index: ${index}`);
         // if (index < 0 || index >= filteredImageData.length) {
@@ -297,7 +271,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(filteredImageData);
 
         currentImageIndexInFilteredList = index;
-        const image = imageData[index]; 
+
+        
+
+        //filter the whole imageData array and find the index of the image with this id
+        //let imgToView = imageData.findIndex(img => img.id === imageData[index]);
+        console.log(`---showLightBox called for image ID: ${filteredImageData[index].id} at filtered index: ${index} ---`);
+
+        // const image = imageData[index]; 
+        const image = filteredImageData[index]; 
 
         //show spinner and hide nav buttons
         loadingSpinner.classList.remove('hidden');
@@ -380,7 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentImageIndexInFilteredList >= filteredImageData.length) {
             currentImageIndexInFilteredList = 0; // Loop to the first image
         }
-        console.log(`Next image index: ${currentImageIndexInFilteredList}`);
+        console.log("NEXT:", filteredImageData[currentImageIndexInFilteredList].id);
+        // console.log(filteredImageData[currentImageIndexInFilteredList].id);
         showLightbox(currentImageIndexInFilteredList);
     }
 
@@ -392,7 +375,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentImageIndexInFilteredList < 0) {
             currentImageIndexInFilteredList = filteredImageData.length - 1; // Loop to the last image
         }
-        console.log(`Previous image index: ${currentImageIndexInFilteredList}`);
+        console.log("PREV:", filteredImageData[currentImageIndexInFilteredList].id);
+        // console.log(filteredImageData[currentImageIndexInFilteredList].id);
         showLightbox(currentImageIndexInFilteredList);
     }
 
