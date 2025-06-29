@@ -266,8 +266,8 @@ h1 {
 
 /* ------------------ Loading Spinner Styling ------------------ */
 #loading-spinner {
-    border: 8px solid #f3f3f3; /* Light grey */
-    border-top: 8px solid #3498db; /* Blue */
+    border: 3px solid #a9a4a4; /* Light grey */
+    border-top: 3px solid #f3f3f3; /* white */
     border-radius: 50%;
     width: 50px;
     height: 50px;
@@ -347,6 +347,35 @@ h1 {
 
 .active-slideshow{
     background-color: #dc3545;
+}
+
+/*-----pagination styles-----*/
+.pagination {
+    margin: 40px 0 0 0;
+    text-align: center;
+}
+
+.pagination li {
+    display: inline;
+}
+
+.pagination li a {
+    border: 1px solid #eaeaea;
+    border-radius: 5px;
+    padding: 3px 8px;
+    text-decoration: none;
+    color: #4ba6c3;
+}
+
+.pagination li a selected {
+    color: red;
+}
+
+
+.pagination li a.active,
+.pagination li a:hover {
+    background-color: #4ba6c3;
+    color: #fff;
 }
 
 /* Animations */

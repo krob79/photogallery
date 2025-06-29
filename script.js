@@ -25,6 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const elem = document.documentElement;
 
     let viewMode = 'manual'; // 'manual' or 'slideshow'
+    let imageData = []; // Stores all fetched image data
+    let currentThumbnails = []; // Stores references to the actual thumbnail DOM elements
+    let filteredImageData = []; // Stores the currently visible images (based on search)
+    let currentImageIndexInFilteredList = -1; // Index of the currently viewed image within filteredImageData
+    let latestImageViewed = 0;
+    let maxItemsPerPage = 20; // Maximum number of items per page
 
     /* View in fullscreen */
     function openFullscreen() {
@@ -55,11 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
 
-    let imageData = []; // Stores all fetched image data
-    let currentThumbnails = []; // Stores references to the actual thumbnail DOM elements
-    let filteredImageData = []; // Stores the currently visible images (based on search)
-    let currentImageIndexInFilteredList = -1; // Index of the currently viewed image within filteredImageData
-    let latestImageViewed = 0;
+    
 
     // NEW: Slideshow variables
     let slideshowInterval = null; // Holds the interval ID
@@ -79,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filteredImageData = [...imageData]; // Use spread to create a shallow copy
             renderThumbnails(imageData); // Initial render of all thumbnails
             checkPageParam();
+            appendPageLinks(imageData, maxItemsPerPage);
             
         } catch (error) {
             console.error("Could not fetch or parse image data from Google Sheet:", error);
@@ -97,19 +100,23 @@ document.addEventListener('DOMContentLoaded', () => {
             photoID = imageURL.split("/d/")[1];
 
         }
-
+        console.log(`Extracted photo ID: ${photoID} from URL: ${imageURL}`);
         return photoID;
 
     }
 
+    //check to see if the URL has a 'view' parameter, and if so, show that image
+    //this allows for copying/pasting a link to a specific image in the lightbox
+    //e.g. https://yourdomain.com/yourpage.html?view=2
     function checkPageParam(){
         const urlSearchParams = new URLSearchParams(window.location.search);
         const params = Object.fromEntries(urlSearchParams.entries());
         //console.log("URL Parameters:", params); // Log URL parameters for debugging
+        let adjustedNumberForSpreadsheet;
         if(params['view']){
             console.log("View specific image! ", params['view']);
-            showLightbox(params['view']);
-            // You can add more debug-specific code here if needed
+            adjustedNumberForSpreadsheet = parseInt(params['view']) - 2; // Adjust for 0-based index
+            showLightbox(adjustedNumberForSpreadsheet);
         }
     }
     
@@ -210,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let photoID = extractID(image.Photo);
             img.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s300`;
             img.alt = image.Caption;
+            console.log(index, image);
             
             thumbDiv.appendChild(img);
             thumbDiv.appendChild(tooltip);
@@ -468,6 +476,85 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+
+
+    function showPage(items, pageNum) {
+        //organize pages
+        let length = items.length;
+        let pagesNeeded = Math.ceil(length / maxItemsPerPage);
+        appendPageLinks(items, maxItemsPerPage);
+
+        //the count for items visible should be set to 0 by default, but keep the 'none found' message hidden
+        let itemsVisible = 0;
+        // currentPage = pageNum;
+
+        
+
+        //show only items from the array passed in
+        for (let i = 0; i < items.length; i++) {
+            /*
+            if the current student's index is greater than or equal to the index referenced in the pageIndexes array OR 
+            the current student's index is less than the pageIndex + maxitemsPerPage (which would be the first index of 
+            the next page), show the student. Otherwise, hide the student.
+            */
+            console.log(items[i]);
+            if (items.indexOf(items[i]) >= pageIndexes[pageNum] && items.indexOf(items[i]) < (pageIndexes[pageNum] + maxItemsPerPage)) {
+                
+                items[i].classList.remove('hidden-by-search'); 
+                
+                //count how many items are visible
+                itemsVisible++;
+            } else {
+                items[i].classList.add('hidden-by-search');
+            }
+        }
+        if (itemsVisible > 0) {
+            //highlight the button that corresponds with the page you're on
+            let linkList = document.querySelector('.pagination');
+            let links = linkList.querySelectorAll('li > a');
+            for (let i = 0; i < links.length; i++) {
+                if (i == page) {
+                    links[i].style.border = "1px solid firebrick";
+                } else {
+                    links[i].style.border = "";
+                }
+            }
+        } 
+    }
+
+    let pageIndexes = [];
+    function appendPageLinks(itemList, maxPerPage) {
+        console.log("----adding page links");
+        //checking if ul pagination links already exist, removing them if they do
+        var linkCheck = document.getElementsByClassName('pagination');
+        var pageElement = document.getElementById('page-links');
+        if (linkCheck.length > 0) {
+            pageElement.removeChild(pageLinksElement);
+        }
+        //create new ul pagination element
+        pageLinksElement = document.createElement('ul');
+        pageLinksElement.className = 'pagination';
+        let pageIndex = 0;
+        
+        let pagesNeeded = Math.ceil(itemList.length / maxPerPage);
+        console.log(`Total items: ${itemList.length}, Max per page: ${maxPerPage}, Pages needed: ${pagesNeeded}`);
+        for (let i = 0; i < pagesNeeded; i++) {
+            //add the first index from each page to the pageIndexes array, then increment by max 
+            pageIndexes.push(pageIndex);
+            pageIndex += maxPerPage;
+            let pageLink = document.createElement('li');
+            pageLink.innerHTML = `<a>${i + 1}</a>`;
+            // pageLink.addEventListener("click", (e) => { console.log("page link!"); });
+            pageLink.addEventListener("click", (e) => { showPage(currentThumbnails, i); });
+            pageLinksElement.appendChild(pageLink);
+        }
+        console.log(`Page indexes: ${pageIndexes}`);
+        pageElement.appendChild(pageLinksElement);
+    }
+
+
+
     // Initial fetch of image data when the page loads
     fetchImageData();
+    
 });
