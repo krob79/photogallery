@@ -315,14 +315,34 @@ h1 {
 
 .play-button:hover {
     background-color: #218838; /* Darker green on hover */
-    transform: scale(1.02);
+    /* transform: scale(1.02); */
     /* border: 1px solid rgba(0, 0, 0, 0.9); */
 }
+
+.download-button{
+    border: none;
+    background-color: hwb(135 20% 78%); /* Green color */
+    border: 1px solid rgba(0, 0, 0, 0.3); /* Kept user's border */
+    padding: 10px 20px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+    margin: 10px 5px 0;
+    min-width: 50px;
+}
+
+.download-button:hover {
+    background-color: hwb(137 31% 67%); /* Darker green on hover */
+    /* transform: scale(1.02); */
+    /* border: 1px solid rgba(0, 0, 0, 0.9); */
+}   
 
 
 .nav-button:hover {
     /* background-color: rgba(0, 0, 0, 0.7); */
-    transform: scale(1.02);
+    /* transform: scale(1.02); */
     /* border: 1px solid rgba(0, 0, 0, 0.9);  */
 }
 

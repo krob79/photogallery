@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // NEW: Slideshow button
     const slideshowButton = document.getElementById('slideshow-button');
     const lightboxSlideshowButton = document.getElementById('play-button');
+    const downloadButton = document.getElementById('download-button');
+    downloadButton.addEventListener('click', downloadImage);
 
     const navButtons = document.getElementById('nav-buttons');
 
@@ -57,6 +59,26 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("Could not exit fullscreen mode.");
         }
         
+    }
+
+    function downloadImage(){
+        // Get the current image source
+        const currentImageSrc = enlargedImage.src;
+        if (!currentImageSrc) {
+            console.error("No image to download.");
+            return;
+        }
+
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.href = currentImageSrc;
+        link.download = imageCaption.textContent || 'downloaded_image'; // Use caption as filename or default
+
+        // Append to body, click and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
     }
 
     

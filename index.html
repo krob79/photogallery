@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Family Reunion Gallery</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
 
@@ -14,7 +15,7 @@
         <div id="search-container">
             <input type="text" id="search-input" placeholder="Search captions...">
             <button id="clear-search">X</button>
-            <button id="slideshow-button" class="slideshow">Start Slideshow</button> 
+            <button id="slideshow-button" class="slideshow">Slideshow &raquo;</button> 
         </div>
         <div id="page-links"></div>
         <div id="thumbnail-view" class="active"></div>
@@ -27,7 +28,8 @@
                 <p id="image-caption"></p>
                 <div id="nav-buttons">  
                     <button id="prev-button" class="nav-button">&lt;</button>
-                    <button id="play-button" class="play-button">&raquo;</button>
+                    <button id="play-button" class="play-button"><i class="fa fa-play"></i></button>
+                    <button id="download-button" class="download-button"><i class="fa fa-download"></i> Download</button>
                     <button id="next-button" class="nav-button">&gt;</button>
                 </div>
                 
