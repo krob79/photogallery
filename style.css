@@ -398,6 +398,14 @@ h1 {
     color: #fff;
 }
 
+.loading {
+    text-align: center;
+    font-size: 1.2em;
+    color: #555;
+    padding: 20px;
+    animation: pulse 2s infinite; /* Added: Pulse animation for loading text */
+}
+
 /* Animations */
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -412,4 +420,10 @@ h1 {
 @keyframes spin {
     0% { transform: translate(-50%, -50%) rotate(0deg); }
     100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }

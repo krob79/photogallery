@@ -72,7 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create a temporary link element
         const link = document.createElement('a');
         link.href = currentImageSrc;
-        link.download = imageCaption.textContent || 'downloaded_image'; // Use caption as filename or default
+        link.target = '_blank'; // Open in new tab
+        
+        let filename = imageCaption.textContent.slice(0, 50).replace(/[^a-z0-9]/gi, '_').toLowerCase(); // Sanitize filename
+        console.log("Downloading image from:", filename);
+        link.download = filename || 'downloaded_image'; // Use caption as filename or default
 
         // Append to body, click and remove
         document.body.appendChild(link);
