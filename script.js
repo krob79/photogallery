@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let filteredImageData = []; // Stores the currently visible images (based on search)
     let currentImageIndexInFilteredList = -1; // Index of the currently viewed image within filteredImageData
     let latestImageViewed = 0;
-    let maxItemsPerPage = 20; // Maximum number of items per page
+    let maxItemsPerPage = 40; // Maximum number of items per page
 
     /* View in fullscreen */
     function openFullscreen() {
@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderThumbnails(imageData); // Initial render of all thumbnails
             checkPageParam();
             appendPageLinks(imageData, maxItemsPerPage);
+            showPage(currentThumbnails, 0); // Show the first page of thumbnails
             
         } catch (error) {
             console.error("Could not fetch or parse image data from Google Sheet:", error);
@@ -100,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
             photoID = imageURL.split("/d/")[1];
 
         }
-        console.log(`Extracted photo ID: ${photoID} from URL: ${imageURL}`);
         return photoID;
 
     }
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let photoID = extractID(image.Photo);
             img.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s300`;
             img.alt = image.Caption;
-            console.log(index, image);
+            // console.log(index, image);
             
             thumbDiv.appendChild(img);
             thumbDiv.appendChild(tooltip);
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         //     return;
         // }
 
-        console.log(filteredImageData);
+        // console.log(filteredImageData);
 
         currentImageIndexInFilteredList = index;
 
@@ -497,7 +497,6 @@ document.addEventListener('DOMContentLoaded', () => {
             the current student's index is less than the pageIndex + maxitemsPerPage (which would be the first index of 
             the next page), show the student. Otherwise, hide the student.
             */
-            console.log(items[i]);
             if (items.indexOf(items[i]) >= pageIndexes[pageNum] && items.indexOf(items[i]) < (pageIndexes[pageNum] + maxItemsPerPage)) {
                 
                 items[i].classList.remove('hidden-by-search'); 
@@ -513,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let linkList = document.querySelector('.pagination');
             let links = linkList.querySelectorAll('li > a');
             for (let i = 0; i < links.length; i++) {
-                if (i == page) {
+                if (i == pageNum) {
                     links[i].style.border = "1px solid firebrick";
                 } else {
                     links[i].style.border = "";
@@ -524,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let pageIndexes = [];
     function appendPageLinks(itemList, maxPerPage) {
-        console.log("----adding page links");
+        //console.log("----adding page links");
         //checking if ul pagination links already exist, removing them if they do
         var linkCheck = document.getElementsByClassName('pagination');
         var pageElement = document.getElementById('page-links');
@@ -537,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let pageIndex = 0;
         
         let pagesNeeded = Math.ceil(itemList.length / maxPerPage);
-        console.log(`Total items: ${itemList.length}, Max per page: ${maxPerPage}, Pages needed: ${pagesNeeded}`);
+        // console.log(`Total items: ${itemList.length}, Max per page: ${maxPerPage}, Pages needed: ${pagesNeeded}`);
         for (let i = 0; i < pagesNeeded; i++) {
             //add the first index from each page to the pageIndexes array, then increment by max 
             pageIndexes.push(pageIndex);
@@ -548,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pageLink.addEventListener("click", (e) => { showPage(currentThumbnails, i); });
             pageLinksElement.appendChild(pageLink);
         }
-        console.log(`Page indexes: ${pageIndexes}`);
+        // console.log(`Page indexes: ${pageIndexes}`);
         pageElement.appendChild(pageLinksElement);
     }
 
@@ -556,5 +555,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial fetch of image data when the page loads
     fetchImageData();
+    
     
 });
