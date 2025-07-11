@@ -22,8 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const navButtons = document.getElementById('nav-buttons');
 
     // **IMPORTANT: Replace this with your actual published CSV link**
-    // const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
-    const GOOGLE_SHEET_CSV_URL = '../localPics.csv';
+    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
+    // const GOOGLE_SHEET_CSV_URL = '../localPics.csv';
 
     const elem = document.documentElement;
 
