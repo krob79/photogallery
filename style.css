@@ -125,19 +125,19 @@ h1 {
 .thumbnail-item .tooltiptext {
     visibility: hidden;
     width: 200px; /* Kept user's width */
-    height: 50px; /* Kept user's height */
+    height: 25px; /* Kept user's height */
     background-color: rgba(0, 0, 0, 0.7); /* Adjusted: Made background semi-transparent for consistency */
     color: #fff;
     text-align: center;
     border-radius: 6px;
-    padding: 5px 0;
+    padding: 10px 10px;
     overflow:hidden;
     text-overflow:ellipsis;
 
     /* Position the tooltip */
     position: absolute;
-    z-index: 1;
-    bottom: 125%; /* Kept user's position */
+    z-index: 4;
+    bottom: 90%; /* Kept user's position */
     left: 50%;
     margin-left: -100px; /* Adjusted: Half of tooltip width (200px) for centering */
     opacity: 0; /* Added: Initial opacity for fade-in effect */
@@ -174,9 +174,9 @@ h1 {
 
 #lightbox-content {
     /* background-color: #fff; */
-    padding: 20px;
+    padding: 0px;
     border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    /* box-shadow: 0 0 20px rgba(0, 0, 0, 0.4); */
     position: relative;
     max-width: 90vw;
     max-height: 90vh;

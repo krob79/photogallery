@@ -22,17 +22,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const navButtons = document.getElementById('nav-buttons');
 
     // **IMPORTANT: Replace this with your actual published CSV link**
-    const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
+    // const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTFFIiRQNWYxq1hNvdK6H1LVydbBvUUJ98HmWuohgqksd2c062otJl7fEnUmYbTTXxsZYyOEL1g_KlC/pub?output=csv';
+    const GOOGLE_SHEET_CSV_URL = '../localPics.csv';
 
     const elem = document.documentElement;
 
     let viewMode = 'manual'; // 'manual' or 'slideshow'
     let imageData = []; // Stores all fetched image data
     let currentThumbnails = []; // Stores references to the actual thumbnail DOM elements
+    let filteredThumbnails = []; // Stores references to the currently filtered thumbnails
     let filteredImageData = []; // Stores the currently visible images (based on search)
     let currentImageIndexInFilteredList = -1; // Index of the currently viewed image within filteredImageData
     let latestImageViewed = 0;
-    let maxItemsPerPage = 40; // Maximum number of items per page
+    let maxItemsPerPage = 30; // Maximum number of items per page
+
+    // NEW: Slideshow variables
+    let slideshowInterval = null; // Holds the interval ID
+    const SLIDESHOW_DELAY = 6000; // 3 seconds per image
+    const FADE_DURATION = 500; // 0.5 seconds for fade effect (matches CSS transition)
 
     /* View in fullscreen */
     function openFullscreen() {
@@ -47,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* Close fullscreen */
     function closeFullscreen() {
-        try{
+        try {
             if (document.exitFullscreen) {
                 document.exitFullscreen();
             } else if (document.webkitExitFullscreen) { /* Safari */
@@ -55,13 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (document.msExitFullscreen) { /* IE11 */
                 document.msExitFullscreen();
             }
-        }catch(err){
+        } catch (err) {
             console.warn("Could not exit fullscreen mode.");
         }
-        
+
     }
 
-    function downloadImage(){
+    function downloadImage() {
         // Get the current image source
         const currentImageSrc = enlargedImage.src;
         if (!currentImageSrc) {
@@ -73,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const link = document.createElement('a');
         link.href = currentImageSrc;
         link.target = '_blank'; // Open in new tab
-        
+
         let filename = imageCaption.textContent.slice(0, 50).replace(/[^a-z0-9]/gi, '_').toLowerCase(); // Sanitize filename
         console.log("Downloading image from:", filename);
         link.download = filename || 'downloaded_image'; // Use caption as filename or default
@@ -85,14 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
-    
 
-    
-
-    // NEW: Slideshow variables
-    let slideshowInterval = null; // Holds the interval ID
-    const SLIDESHOW_DELAY = 6000; // 3 seconds per image
-    const FADE_DURATION = 500; // 0.5 seconds for fade effect (matches CSS transition)
 
     // Function to fetch and parse CSV data
     async function fetchImageData() {
@@ -105,49 +105,61 @@ document.addEventListener('DOMContentLoaded', () => {
             imageData = parseCsvToJSON(csvText); // Parse the CSV
             // Initially, filteredImageData is all imageData
             filteredImageData = [...imageData]; // Use spread to create a shallow copy
+            console.log("Fetched image data:", imageData); // Log the fetched data for debugging
             renderThumbnails(imageData); // Initial render of all thumbnails
             checkPageParam();
-            appendPageLinks(imageData, maxItemsPerPage);
             showPage(currentThumbnails, 0); // Show the first page of thumbnails
-            
+
         } catch (error) {
             console.error("Could not fetch or parse image data from Google Sheet:", error);
             thumbnailView.innerHTML = '<p>Error loading images from Google Sheet. Please check the URL and sharing settings.</p>';
         }
     }
 
-    function extractID(imageURL) {
+    function createImgSrc(imageURL, size) {
         let photoID;
+        let imgSrc;
+        //if imageURL contains a reference to "id", or "/d/" in the path, reformat the URL and extract the id value
+        //otherwise, just send the imageURL parameter through as-is
+        console.log("---createImgSrc ", imageURL);
         if (imageURL.includes("id=")) {
 
             photoID = imageURL.split("id=")[1];
+            // imgSrc = `https://drive.google.com/thumbnail?id=${photoID}&sz=${size}`
+            imgSrc = `https://lh3.googleusercontent.com/d/${photoID}=w${size}`;
+            // <img src="https://lh3.googleusercontent.com/d/1ATAxpQ7puldruGOvrRclCmKF7d9s9qWI=w600-h600" alt=""></img>
+
 
         } else if (imageURL.includes("/d/")) {
 
             photoID = imageURL.split("/d/")[1];
+            // imgSrc = `https://drive.google.com/thumbnail?id=${photoID}&sz=${size}`;
+            imgSrc = `https://lh3.googleusercontent.com/d/${photoID}=w${size}`;
 
+        } else {
+            imgSrc = imageURL;
         }
-        return photoID;
+        return imgSrc;
 
     }
 
     //check to see if the URL has a 'view' parameter, and if so, show that image
     //this allows for copying/pasting a link to a specific image in the lightbox
     //e.g. https://yourdomain.com/yourpage.html?view=2
-    function checkPageParam(){
+    function checkPageParam() {
         const urlSearchParams = new URLSearchParams(window.location.search);
         const params = Object.fromEntries(urlSearchParams.entries());
         //console.log("URL Parameters:", params); // Log URL parameters for debugging
         let adjustedNumberForSpreadsheet;
-        if(params['view']){
+        if (params['view']) {
             console.log("View specific image! ", params['view']);
             adjustedNumberForSpreadsheet = parseInt(params['view']) - 2; // Adjust for 0-based index
             showLightbox(adjustedNumberForSpreadsheet);
         }
     }
-    
 
-    function regExMatch(str){
+
+    function regExMatch(str) {
         // regex for grouping values
         // This regex captures up to 4 groups of values separated by commas.
         // It allows for optional values in the second and third groups, and captures everything else in the fourth group.
@@ -198,26 +210,27 @@ document.addEventListener('DOMContentLoaded', () => {
             // console.log(`Processing row ${i+1}: ${lines[i]}`); // Log each row being processed
 
             let regExGroups = regExMatch(lines[i]);
-            
+
             const item = {};
             for (let j = 0; j < regExGroups.length; j++) {
                 // Trim whitespace and handle potential quotes in values
-                let value = regExGroups[j+1];
+                let value = regExGroups[j + 1];
                 if (typeof value == "string") {
-                    if (value.endsWith(',')){
+                    if (value.endsWith(',')) {
                         value = value.substring(0, value.length - 1); // Remove comma at the end
                     }
                     if (value.startsWith('"') && value.endsWith('"')) {
                         value = value.substring(1, value.length - 1); // Remove quotes
                     }
-                     
+
                 }
                 item[headers[j]] = value;
-                item["id"] = i+1; // Add an ID field based on the row number
+                item["id"] = i + 1; // Add an ID field based on the row number
             }
             // console.log(`Parsed item: ${item}`); // Log the parsed item for debugging
             data.push(item);
         }
+        console.log(`----parseCSVtoJSON: `, data);
         return data;
     }
 
@@ -237,14 +250,15 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip.setAttribute('class', 'tooltiptext');
             //index + 2 to account for the header row in the CSV
             tooltip.textContent = `${image.id}. ${image.Caption}` || 'No caption';
-            
+
 
             const img = document.createElement('img');
-            let photoID = extractID(image.Photo);
-            img.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s300`;
+            //let photoID = createImgSrc(image.Photo, 300);
+            //img.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s300`;
+            img.src = createImgSrc(image.Photo, 300);
             img.alt = image.Caption;
             // console.log(index, image);
-            
+
             thumbDiv.appendChild(img);
             thumbDiv.appendChild(tooltip);
             thumbnailView.appendChild(thumbDiv);
@@ -270,6 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function filterThumbnails() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         filteredImageData = []; // Reset filtered data
+        filteredThumbnails = [];
 
         currentThumbnails.forEach(thumbDiv => {
             const caption = thumbDiv.dataset.caption;
@@ -278,19 +293,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (caption.includes(searchTerm) || searchTerm === '') {
                 thumbDiv.classList.remove('hidden-by-search');
                 filteredImageData.push(imageData[originalIndex]); // Add to filtered data
+                filteredThumbnails.push(thumbDiv); // Store the reference to the thumbnail
             } else {
                 thumbDiv.classList.add('hidden-by-search');
             }
         });
+
+        appendPageLinks(filteredThumbnails, maxItemsPerPage);
     }
 
     // NEW EVENT LISTENERS for search bar
-    searchInput.addEventListener('input', filterThumbnails);
+    searchInput.addEventListener('input', () => {
+        filterThumbnails();
+        // Reset to the first page after filtering
+        showPage(filteredThumbnails, 0);
+    });
 
     clearSearchButton.addEventListener('click', () => {
         searchInput.value = '';
         filterThumbnails();
         searchInput.focus();
+        showPage(filteredThumbnails, 0);
     });
 
     // Function to show the lightbox with loading spinner (modified to use filteredImageData)
@@ -306,14 +329,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentImageIndexInFilteredList = index;
 
-        
+
 
         //filter the whole imageData array and find the index of the image with this id
         //let imgToView = imageData.findIndex(img => img.id === imageData[index]);
         console.log(`---showLightBox called for image ID: ${filteredImageData[index].id} at filtered index: ${index} ---`);
 
         // const image = imageData[index]; 
-        const image = filteredImageData[index]; 
+        const image = filteredImageData[index];
 
         //show spinner and hide nav buttons
         loadingSpinner.classList.remove('hidden');
@@ -333,30 +356,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => {
             //set image opacity to 0 to prepare for fade-in
-            enlargedImage.style.opacity = 0; 
+            enlargedImage.style.opacity = 0;
             imageCaption.style.opacity = 0;
-            let photoID = extractID(image.Photo);
+            // let photoID = createImgSrc(image.Photo, 1200);
             let caption = `${image.id}. ${image.Caption || 'No caption'}`; // Adjusted index for reference to CSV row number
 
-            enlargedImage.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s1200`;
+            // enlargedImage.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s1200`;
+            enlargedImage.src = createImgSrc(image.Photo, 1200);
             enlargedImage.alt = caption;
             imageCaption.textContent = caption;
 
             loadingSpinner.classList.add('hidden');
 
             enlargedImage.onload = () => {
-                
+
                 enlargedImage.classList.remove('hidden'); // Remove hidden and fading
                 imageCaption.classList.remove('hidden'); // Show and un-fade
-                if(viewMode === 'manual'){
+                if (viewMode === 'manual') {
                     navButtons.classList.remove('hidden');
                 }
-                
+
                 setTimeout(() => {
                     enlargedImage.style.opacity = 1; // Ensure fully visible
                     imageCaption.style.opacity = 1;
                 }, 100); // Match this duration with your CSS transition duration
-                
+
             };
 
             enlargedImage.onerror = () => {
@@ -374,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to hide the lightbox (same as before)
     function hideLightbox() {
-        if(viewMode === 'slideshow'){
+        if (viewMode === 'slideshow') {
             stopSlideshow();
         }
         lightbox.classList.add('hidden');
@@ -466,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
     slideshowButton.addEventListener('click', () => {
         if (slideshowInterval) {
             stopSlideshow();
-            
+
         } else {
             startSlideshow();
         }
@@ -481,12 +505,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function shuffle(array) {
+        let newShuffledArray = [...array]; // Create a shallow copy to avoid mutating the original array
+        var m = array.length, t, i;
+
+        // While there remain elements to shuffle…
+        while (m) {
+
+            // Pick a remaining element…
+            i = Math.floor(Math.random() * m--);
+
+            // And swap it with the current element.
+            t = newShuffledArray[m];
+            newShuffledArray[m] = newShuffledArray[i];
+            newShuffledArray[i] = t;
+        }
+
+        console.log("Shuffled array:", newShuffledArray);
+
+        return newShuffledArray;
+    }
+
 
     // Event listeners for closing the lightbox (same as before)
-    
-    enlargedImage.addEventListener('click', hideLightbox);
+
     lightbox.addEventListener('click', (event) => {
-        if (event.target === lightbox || event.target === enlargedImage || event.target === imageCaption) {
+        if (event.target === lightbox || event.target === enlargedImage) {
             hideLightbox();
         }
     });
@@ -514,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let itemsVisible = 0;
         // currentPage = pageNum;
 
-        
+
 
         //show only items from the array passed in
         for (let i = 0; i < items.length; i++) {
@@ -524,9 +568,9 @@ document.addEventListener('DOMContentLoaded', () => {
             the next page), show the student. Otherwise, hide the student.
             */
             if (items.indexOf(items[i]) >= pageIndexes[pageNum] && items.indexOf(items[i]) < (pageIndexes[pageNum] + maxItemsPerPage)) {
-                
-                items[i].classList.remove('hidden-by-search'); 
-                
+
+                items[i].classList.remove('hidden-by-search');
+
                 //count how many items are visible
                 itemsVisible++;
             } else {
@@ -544,12 +588,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     links[i].style.border = "";
                 }
             }
-        } 
+        }
     }
 
     let pageIndexes = [];
     function appendPageLinks(itemList, maxPerPage) {
-        //console.log("----adding page links");
         //checking if ul pagination links already exist, removing them if they do
         var linkCheck = document.getElementsByClassName('pagination');
         var pageElement = document.getElementById('page-links');
@@ -560,9 +603,9 @@ document.addEventListener('DOMContentLoaded', () => {
         pageLinksElement = document.createElement('ul');
         pageLinksElement.className = 'pagination';
         let pageIndex = 0;
-        
+
         let pagesNeeded = Math.ceil(itemList.length / maxPerPage);
-        // console.log(`Total items: ${itemList.length}, Max per page: ${maxPerPage}, Pages needed: ${pagesNeeded}`);
+        console.log(`Total items: ${itemList.length}, Max per page: ${maxPerPage}, Pages needed: ${pagesNeeded}`);
         for (let i = 0; i < pagesNeeded; i++) {
             //add the first index from each page to the pageIndexes array, then increment by max 
             pageIndexes.push(pageIndex);
@@ -581,6 +624,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial fetch of image data when the page loads
     fetchImageData();
-    
-    
+
+
 });
