@@ -255,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = document.createElement('img');
             //let photoID = createImgSrc(image.Photo, 300);
             //img.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s300`;
+            console.log("---PHOTO: ", image)
             img.src = createImgSrc(image.Photo, 300);
             img.alt = image.Caption;
             // console.log(index, image);
