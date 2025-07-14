@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
         link.target = '_blank'; // Open in new tab
 
         let filename = imageCaption.textContent.slice(0, 50).replace(/[^a-z0-9]/gi, '_').toLowerCase(); // Sanitize filename
-        console.log("Downloading image from:", filename);
         link.download = filename || 'downloaded_image'; // Use caption as filename or default
 
         // Append to body, click and remove
@@ -105,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             imageData = parseCsvToJSON(csvText); // Parse the CSV
             // Initially, filteredImageData is all imageData
             filteredImageData = [...imageData]; // Use spread to create a shallow copy
-            console.log("Fetched image data:", imageData); // Log the fetched data for debugging
+            // console.log("Fetch image data:", imageData); // Log the fetched data for debugging
             renderThumbnails(imageData); // Initial render of all thumbnails
             checkPageParam();
             showPage(currentThumbnails, 0); // Show the first page of thumbnails
@@ -121,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let imgSrc;
         //if imageURL contains a reference to "id", or "/d/" in the path, reformat the URL and extract the id value
         //otherwise, just send the imageURL parameter through as-is
-        console.log("---createImgSrc ", imageURL);
         if (imageURL.includes("id=")) {
 
             photoID = imageURL.split("id=")[1];
@@ -152,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         //console.log("URL Parameters:", params); // Log URL parameters for debugging
         let adjustedNumberForSpreadsheet;
         if (params['view']) {
-            console.log("View specific image! ", params['view']);
             adjustedNumberForSpreadsheet = parseInt(params['view']) - 2; // Adjust for 0-based index
             showLightbox(adjustedNumberForSpreadsheet);
         }
@@ -230,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // console.log(`Parsed item: ${item}`); // Log the parsed item for debugging
             data.push(item);
         }
-        console.log(`----parseCSVtoJSON: `, data);
+        console.log(`----parseCSVtoJSON: `);
         return data;
     }
 
@@ -255,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = document.createElement('img');
             //let photoID = createImgSrc(image.Photo, 300);
             //img.src = `https://drive.google.com/thumbnail?id=${photoID}&sz=s300`;
-            console.log("---PHOTO: ", image)
             img.src = createImgSrc(image.Photo, 300);
             img.alt = image.Caption;
             // console.log(index, image);

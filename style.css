@@ -14,7 +14,7 @@ h1 {
     max-width: 900px;
     margin: 30px auto;
     border: 1px solid #ddd;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
@@ -22,20 +22,26 @@ h1 {
 
 /* ------------------ Search Bar Styling ------------------ */
 #search-container {
-    display: flex; /* Use flexbox for input and button */
-    gap: 10px; /* Space between input and button */
+    display: flex;
+    /* Use flexbox for input and button */
+    gap: 10px;
+    /* Space between input and button */
     margin-bottom: 20px;
-    padding: 0 10px; /* Align with thumbnail view padding */
-    align-items: center; /* Added: Align items vertically in the center */
+    padding: 0 10px;
+    /* Align with thumbnail view padding */
+    align-items: center;
+    /* Added: Align items vertically in the center */
 }
 
 #search-input {
-    flex-grow: 1; /* Allow input to take up available space */
+    flex-grow: 1;
+    /* Allow input to take up available space */
     padding: 10px 15px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 1em;
-    outline: none; /* Remove default outline on focus */
+    outline: none;
+    /* Remove default outline on focus */
 }
 
 #search-input::placeholder {
@@ -50,7 +56,8 @@ h1 {
 #clear-search {
     padding: 10px 15px;
     border: none;
-    background-color: #dc3545; /* Red color for clear button */
+    background-color: #dc3545;
+    /* Red color for clear button */
     color: white;
     border-radius: 5px;
     cursor: pointer;
@@ -67,7 +74,8 @@ h1 {
 #slideshow-button {
     padding: 10px 15px;
     border: none;
-    background-color: #28a745; /* Green color */
+    background-color: #28a745;
+    /* Green color */
     color: white;
     border-radius: 5px;
     cursor: pointer;
@@ -97,9 +105,11 @@ h1 {
     border: 1px solid #eee;
     padding: 5px;
     border-radius: 5px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease; /* Added opacity transition */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+    /* Added opacity transition */
     text-align: center;
-    position: relative; /* Keep: Needed for tooltip positioning */
+    position: relative;
+    /* Keep: Needed for tooltip positioning */
 }
 
 .thumbnail-item img {
@@ -112,10 +122,11 @@ h1 {
 
 .thumbnail-item:hover {
     transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.thumbnail-item.hidden-by-search { /* Class to hide items that don't match */
+.thumbnail-item.hidden-by-search {
+    /* Class to hide items that don't match */
     display: none;
 }
 
@@ -124,31 +135,40 @@ h1 {
 
 .thumbnail-item .tooltiptext {
     visibility: hidden;
-    width: 200px; /* Kept user's width */
-    height: 25px; /* Kept user's height */
-    background-color: rgba(0, 0, 0, 0.7); /* Adjusted: Made background semi-transparent for consistency */
+    width: 90%;
+    /* Kept user's width */
+    height: 85%;
+    /* Kept user's height */
+    background-color: rgba(0, 0, 0, 0.7);
+    /* Adjusted: Made background semi-transparent for consistency */
     color: #fff;
     text-align: center;
     border-radius: 6px;
     padding: 10px 10px;
-    overflow:hidden;
-    text-overflow:ellipsis;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     /* Position the tooltip */
     position: absolute;
     z-index: 4;
-    bottom: 90%; /* Kept user's position */
-    left: 50%;
-    margin-left: -100px; /* Adjusted: Half of tooltip width (200px) for centering */
-    opacity: 0; /* Added: Initial opacity for fade-in effect */
-    transition: opacity 0.3s; /* Added: Transition for opacity */
-    font-size: 0.8em; /* Added for better readability on smaller tooltips */
-    white-space: normal; /* Added to allow text wrapping */
+    bottom: 0;
+    left: 0;
+    margin-left: 0px;
+    /* Adjusted: Half of tooltip width (200px) for centering */
+    opacity: 0;
+    /* Added: Initial opacity for fade-in effect */
+    transition: opacity 0.3s;
+    /* Added: Transition for opacity */
+    font-size: 0.8em;
+    /* Added for better readability on smaller tooltips */
+    white-space: normal;
+    /* Added to allow text wrapping */
 }
 
 .thumbnail-item:hover .tooltiptext {
     visibility: visible;
-    opacity: 1; /* Added: Make visible and fully opaque on hover */
+    opacity: 1;
+    /* Added: Make visible and fully opaque on hover */
 }
 
 
@@ -164,7 +184,8 @@ h1 {
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    overflow: hidden; /* Changed: Prevent scrollbar during transitions */
+    overflow: hidden;
+    /* Changed: Prevent scrollbar during transitions */
     animation: fadeIn 0.3s ease-out;
 }
 
@@ -183,7 +204,8 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Keep: Center vertically if image not loaded yet */
+    justify-content: center;
+    /* Keep: Center vertically if image not loaded yet */
     animation: zoomIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
@@ -191,20 +213,25 @@ h1 {
     max-width: 100%;
     max-height: 85vh;
     height: auto;
-    display: block; /* Will be toggled by JS */
+    display: block;
+    /* Will be toggled by JS */
     margin-bottom: 15px;
     border-radius: 5px;
     object-fit: contain;
     cursor: pointer;
-    transition: opacity 1.5s ease-in-out; /* Added: Fade transition for slideshow */
-    opacity: 0; /* Added: Default state */
+    transition: opacity 1.5s ease-in-out;
+    /* Added: Fade transition for slideshow */
+    opacity: 0;
+    /* Added: Default state */
 }
 
-#enlarged-image.hidden { /* To hide image while loading */
+#enlarged-image.hidden {
+    /* To hide image while loading */
     display: none;
 }
 
-#next-button.hidden, #prev-button.hidden {
+#next-button.hidden,
+#prev-button.hidden {
     display: none;
 }
 
@@ -227,11 +254,14 @@ h1 {
     width: fit-content;
     max-width: 90%;
     margin-top: -10px;
-    transition: opacity 1.5s ease-in-out; /* Added: Fade transition for slideshow */
-    opacity: 1; /* Added: Default state */
+    transition: opacity 1.5s ease-in-out;
+    /* Added: Fade transition for slideshow */
+    opacity: 1;
+    /* Added: Default state */
 }
 
-#image-caption.hidden { /* To hide caption while image is loading */
+#image-caption.hidden {
+    /* To hide caption while image is loading */
     display: none;
 }
 
@@ -245,12 +275,13 @@ h1 {
     position: absolute;
     top: 10px;
     right: 15px;
-    color: #fff; /* Adjusted: Changed back to white for better contrast with dark background */
+    color: #fff;
+    /* Adjusted: Changed back to white for better contrast with dark background */
     font-size: 30px;
     font-weight: bold;
     cursor: pointer;
     z-index: 1001;
-    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
     transition: color 0.2s ease;
 }
 
@@ -266,17 +297,22 @@ h1 {
 
 /* ------------------ Loading Spinner Styling ------------------ */
 #loading-spinner {
-    border: 3px solid #a9a4a4; /* Light grey */
-    border-top: 3px solid #f3f3f3; /* white */
+    border: 3px solid #a9a4a4;
+    /* Light grey */
+    border-top: 3px solid #f3f3f3;
+    /* white */
     border-radius: 50%;
     width: 50px;
     height: 50px;
     animation: spin 1s linear infinite;
-    position: absolute; /* Position it centrally within lightbox-content */
+    position: absolute;
+    /* Position it centrally within lightbox-content */
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Center it perfectly */
-    z-index: 1; /* Ensure it's above the image if image is there but hidden */
+    transform: translate(-50%, -50%);
+    /* Center it perfectly */
+    z-index: 1;
+    /* Ensure it's above the image if image is there but hidden */
 }
 
 #loading-spinner.hidden {
@@ -286,12 +322,16 @@ h1 {
 
 /* ------------------ Navigation Buttons Styling ------------------ */
 .nav-button {
-    background-color: white; /* Kept user's background */
-    color:  rgba(0, 0, 0, 0.6); /* Kept user's color */
-    border: 1px solid rgba(0, 0, 0, 0.3); /* Kept user's border */
+    background-color: white;
+    /* Kept user's background */
+    color: rgba(0, 0, 0, 0.6);
+    /* Kept user's color */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* Kept user's border */
     padding: 10px 20px;
     cursor: pointer;
-    font-size: 1em; /* Kept user's font size */
+    font-size: 1em;
+    /* Kept user's font size */
     font-weight: bold;
     border-radius: 5px;
     margin: 10px 5px 0;
@@ -299,10 +339,12 @@ h1 {
     min-width: 100px;
 }
 
-.play-button{
+.play-button {
     border: none;
-    background-color: #28a745; /* Green color */
-    border: 1px solid rgba(0, 0, 0, 0.3); /* Kept user's border */
+    background-color: #28a745;
+    /* Green color */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* Kept user's border */
     padding: 10px 20px;
     color: white;
     border-radius: 5px;
@@ -314,15 +356,18 @@ h1 {
 }
 
 .play-button:hover {
-    background-color: #218838; /* Darker green on hover */
+    background-color: #218838;
+    /* Darker green on hover */
     /* transform: scale(1.02); */
     /* border: 1px solid rgba(0, 0, 0, 0.9); */
 }
 
-.download-button{
+.download-button {
     border: none;
-    background-color: hwb(135 20% 78%); /* Green color */
-    border: 1px solid rgba(0, 0, 0, 0.3); /* Kept user's border */
+    background-color: hwb(135 20% 78%);
+    /* Green color */
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    /* Kept user's border */
     padding: 10px 20px;
     color: white;
     border-radius: 5px;
@@ -334,10 +379,11 @@ h1 {
 }
 
 .download-button:hover {
-    background-color: hwb(137 31% 67%); /* Darker green on hover */
+    background-color: hwb(137 31% 67%);
+    /* Darker green on hover */
     /* transform: scale(1.02); */
     /* border: 1px solid rgba(0, 0, 0, 0.9); */
-}   
+}
 
 
 .nav-button:hover {
@@ -351,21 +397,25 @@ h1 {
 }
 
 .nav-button.hidden {
-    display: none; /* Hide navigation buttons when not needed */
+    display: none;
+    /* Hide navigation buttons when not needed */
 }
 
-#nav-buttons{
+#nav-buttons {
     display: flex;
-    justify-content: space-between; /* Space between slideshow and clear search */
-    align-items: center; /* Center items vertically */
-    margin-top: 10px; /* Add some space above controls */
+    justify-content: space-between;
+    /* Space between slideshow and clear search */
+    align-items: center;
+    /* Center items vertically */
+    margin-top: 10px;
+    /* Add some space above controls */
 }
 
-#nav-buttons.hidden{
+#nav-buttons.hidden {
     display: none;
 }
 
-.active-slideshow{
+.active-slideshow {
     background-color: #dc3545;
 }
 
@@ -403,27 +453,53 @@ h1 {
     font-size: 1.2em;
     color: #555;
     padding: 20px;
-    animation: pulse 2s infinite; /* Added: Pulse animation for loading text */
+    animation: pulse 2s infinite;
+    /* Added: Pulse animation for loading text */
 }
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes zoomIn {
-    from { transform: scale(0.7); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 @keyframes spin {
-    0% { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(360deg); }
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }

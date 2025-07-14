@@ -7,8 +7,8 @@ A small experiment born out of necessity for a family reunion.
 
 ## Challenges:
 - Getting various family members in various states and various competencies with technology to send digital photos
-- Getting those same family members to provide appropriately descriptive labels for each photo so that everyone can understand the subjects in the photo
-  (Bad Example: "Gramps with the kids at the old house"  Good Example: "Tom Espinosa at his house with grandkids Megan Byrne, Amy Byrne, and Molly Byrne")
+- Getting those same family members to provide appropriately descriptive labels so that everyone can understand the subjects in the photo
+  (Example: "Gramps with the kids at the old house" vs. "Tom Espinosa at his house with grandkids Megan Byrne, Amy Byrne, and Molly Byrne")
 - I want to avoid managing a bunch of photos and having to repeatedly reply back to senders for clarity about the photos they sent.
 - I want to avoid spending a lot of time making a slideshow of 100+ pictures.
 
