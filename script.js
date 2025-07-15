@@ -576,13 +576,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (itemsVisible > 0) {
             //highlight the button that corresponds with the page you're on
-            let linkList = document.querySelector('.pagination');
-            let links = linkList.querySelectorAll('li > a');
+            let linkList = document.querySelectorAll('.pagination');
+            //run procedure for both top and bottom pagination
+            let links = linkList[0].querySelectorAll('li > a');
+            let links2 = linkList[1].querySelectorAll('li > a');
             for (let i = 0; i < links.length; i++) {
                 if (i == pageNum) {
                     links[i].style.border = "1px solid firebrick";
+                    links2[i].style.border = "1px solid firebrick";
                 } else {
                     links[i].style.border = "";
+                    links2[i].style.border = "";
                 }
             }
         }
@@ -593,12 +597,16 @@ document.addEventListener('DOMContentLoaded', () => {
         //checking if ul pagination links already exist, removing them if they do
         var linkCheck = document.getElementsByClassName('pagination');
         var pageElement = document.getElementById('page-links');
+        var pageElement2 = document.getElementById('page-links2');
         if (linkCheck.length > 0) {
             pageElement.removeChild(pageLinksElement);
+            pageElement2.removeChild(pageLinksElement2);
         }
         //create new ul pagination element
         pageLinksElement = document.createElement('ul');
         pageLinksElement.className = 'pagination';
+        pageLinksElement2 = document.createElement('ul');
+        pageLinksElement2.className = 'pagination';
         let pageIndex = 0;
 
         let pagesNeeded = Math.ceil(itemList.length / maxPerPage);
@@ -608,13 +616,18 @@ document.addEventListener('DOMContentLoaded', () => {
             pageIndexes.push(pageIndex);
             pageIndex += maxPerPage;
             let pageLink = document.createElement('li');
+            let pageLink2 = document.createElement('li');
             pageLink.innerHTML = `<a>${i + 1}</a>`;
+            pageLink2.innerHTML = `<a>${i + 1}</a>`;
             // pageLink.addEventListener("click", (e) => { console.log("page link!"); });
             pageLink.addEventListener("click", (e) => { showPage(currentThumbnails, i); });
             pageLinksElement.appendChild(pageLink);
+            pageLink2.addEventListener("click", (e) => { showPage(currentThumbnails, i); });
+            pageLinksElement2.appendChild(pageLink2);
         }
         // console.log(`Page indexes: ${pageIndexes}`);
         pageElement.appendChild(pageLinksElement);
+        pageElement2.appendChild(pageLinksElement2);
     }
 
 

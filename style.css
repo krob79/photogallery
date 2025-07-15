@@ -72,6 +72,7 @@ h1 {
 
 /* NEW: Slideshow button styling */
 #slideshow-button {
+    display: none;
     padding: 10px 15px;
     border: none;
     background-color: #28a745;
